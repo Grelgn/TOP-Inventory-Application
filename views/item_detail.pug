@@ -1,0 +1,11 @@
+extends layout
+
+block content
+
+  h1 Item: #{item.name}
+
+  p #[strong Description:] #{item.description}
+  p #[strong Category: ]
+    a(href=item.category.url) #{item.category.name}
+  p #[strong Price:] 💲#{item.price}
+  p #[strong Number in stock:] #{item.numberInStock} Blocks
