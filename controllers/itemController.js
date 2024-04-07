@@ -104,10 +104,67 @@ exports.item_delete_post = asyncHandler(async (req, res, next) => {
 
 // Display Item update form on GET.
 exports.item_update_get = asyncHandler(async (req, res, next) => {
-	res.send("NOT IMPLEMENTED: Item update GET");
+	const [item, allCategories] = await Promise.all([
+		Item.findById(req.params.id).populate("category").exec(),
+		Category.find(),
+	]);
+
+	if (item === null) {
+		const err = new Error("Item not found");
+		err.status = 404;
+		return next(err);
+	}
+
+	res.render("item_form", {
+		title: "Update Item",
+		category_list: allCategories,
+		selected_category: item.category._id,
+		item: item,
+	});
 });
 
 // Handle Item update on POST.
-exports.item_update_post = asyncHandler(async (req, res, next) => {
-	res.send("NOT IMPLEMENTED: Item update POST");
-});
+exports.item_update_post = [
+	body("name", "Item name must be specified").trim().isLength({ min: 1 }).escape(),
+	body("description", "Item description must be between 3 - 400 characters")
+		.trim()
+		.isLength({ min: 3, max: 300 })
+		.escape(),
+	body("category, Category must be specified").escape(),
+	body("price", "Item price must be specified").trim().isInt({ min: 0 }).escape(),
+	body("numberInStock", "Item number in stock must be specified")
+		.trim()
+		.isInt({ min: 0 })
+		.escape(),
+
+	asyncHandler(async (req, res, next) => {
+		const errors = validationResult(req);
+
+		const item = new Item({
+			name: req.body.name,
+			description: req.body.description,
+			category: req.body.category,
+			price: req.body.price,
+			numberInStock: req.body.numberInStock,
+			_id: req.params.id,
+		});
+
+		if (!errors.isEmpty()) {
+			const allCategories = await Category.find({}, "name")
+				.sort({ name: 1 })
+				.exec();
+
+			res.render("item_form", {
+				title: "Update Item",
+				category_list: allCategories,
+				selected_category: item.category._id ? item.category._id : "", // ensure selected_category is defined
+				errors: errors.array(),
+				item: item,
+			});
+			return;
+		} else {
+			const updatedItem = await Item.findByIdAndUpdate(req.params.id, item, {});
+			res.redirect(updatedItem.url);
+		}
+	}),
+];
