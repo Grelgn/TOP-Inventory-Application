@@ -27,9 +27,13 @@ exports.item_detail = asyncHandler(async (req, res, next) => {
 });
 
 // Display Item create form on GET.
-exports.item_create_get = (req, res, next) => {
-	res.render("item_form", { title: "Create Item" });
-};
+exports.item_create_get = asyncHandler(async (req, res, next) => {
+	const allCategories = await Category.find({}, "name");
+	res.render("item_form", {
+		title: "Create Item",
+		category_list: allCategories,	
+	});
+});
 
 // Handle Item create on POST.
 exports.item_create_post = [
@@ -38,7 +42,7 @@ exports.item_create_post = [
 		.trim()
 		.isLength({ min: 3, max: 300 })
 		.escape(),
-	body("category, Category must be specified").trim().escape(),
+	body("category, Category must be specified").escape(),
 	body("price", "Item price must be specified").trim().isInt({ min: 0 }).escape(),
 	body("numberInStock", "Item number in stock must be specified")
 		.trim()
@@ -60,11 +64,11 @@ exports.item_create_post = [
 			const allCategories = await Category.find({}, "name")
 				.sort({ name: 1 })
 				.exec();
-				
+
 			res.render("item_form", {
 				title: "Create Item",
 				category_list: allCategories,
-				selected_category: item.category._id ? item.category._id : '', // ensure selected_category is defined
+				selected_category: item.category._id ? item.category._id : "", // ensure selected_category is defined
 				errors: errors.array(),
 				item: item,
 			});

@@ -15,12 +15,12 @@ block content
       label(for='category') Category:
       select#category.form-control(name='category' required)
         option(value='') --Select a category--
-        if category_list
-          for category in category_list
-            if selected_category==category._id.toString()
-              option(value=category._id, selected) #{category.name}
-            else
-              option(value=category._id) #{category.name}
+          if category_list
+            for category in category_list
+              if selected_category==category._id.toString()
+                option(value=category._id, selected) #{category.name}
+              else
+                option(value=category._id) #{category.name}
     div.form-group
       label(for='price') Price:
       input#price.form-control(type='number', name='price' required value=(undefined===item ? '' : item.price) )
