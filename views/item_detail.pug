@@ -9,3 +9,9 @@ block content
     a(href=item.category.url) #{item.category.name}
   p #[strong Price:] 💲#{item.price}
   p #[strong Number in stock:] #{item.numberInStock} Blocks
+
+  hr
+  p
+    a(href=item.url+'/delete') Delete Item
+  p
+    a(href=item.url+'/update') Update Item
