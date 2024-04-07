@@ -1,5 +1,7 @@
 const Item = require("../models/item");
+const Category = require("../models/category");
 const asyncHandler = require("express-async-handler");
+const { body, validationResult } = require("express-validator");
 
 // Display list of all Items.
 exports.item_list = asyncHandler(async (req, res, next) => {
@@ -25,14 +27,54 @@ exports.item_detail = asyncHandler(async (req, res, next) => {
 });
 
 // Display Item create form on GET.
-exports.item_create_get = asyncHandler(async (req, res, next) => {
-	res.send("NOT IMPLEMENTED: Item create GET");
-});
+exports.item_create_get = (req, res, next) => {
+	res.render("item_form", { title: "Create Item" });
+};
 
 // Handle Item create on POST.
-exports.item_create_post = asyncHandler(async (req, res, next) => {
-	res.send("NOT IMPLEMENTED: Item create POST");
-});
+exports.item_create_post = [
+	body("name", "Item name must be specified").trim().isLength({ min: 1 }).escape(),
+	body("description", "Item description must be between 3 - 400 characters")
+		.trim()
+		.isLength({ min: 3, max: 300 })
+		.escape(),
+	body("category, Category must be specified").trim().escape(),
+	body("price", "Item price must be specified").trim().isInt({ min: 0 }).escape(),
+	body("numberInStock", "Item number in stock must be specified")
+		.trim()
+		.isInt({ min: 0 })
+		.escape(),
+
+	asyncHandler(async (req, res, next) => {
+		const errors = validationResult(req);
+
+		const item = new Item({
+			name: req.body.name,
+			description: req.body.description,
+			category: req.body.category,
+			price: req.body.price,
+			numberInStock: req.body.numberInStock,
+		});
+
+		if (!errors.isEmpty()) {
+			const allCategories = await Category.find({}, "name")
+				.sort({ name: 1 })
+				.exec();
+				
+			res.render("item_form", {
+				title: "Create Item",
+				category_list: allCategories,
+				selected_category: item.category._id ? item.category._id : '', // ensure selected_category is defined
+				errors: errors.array(),
+				item: item,
+			});
+			return;
+		} else {
+			await item.save();
+			res.redirect(item.url);
+		}
+	}),
+];
 
 // Display Item delete form on GET.
 exports.item_delete_get = asyncHandler(async (req, res, next) => {
