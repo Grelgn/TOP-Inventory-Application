@@ -3,6 +3,7 @@ const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
 const logger = require("morgan");
+require('dotenv').config()
 
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/users");
@@ -13,10 +14,8 @@ const app = express();
 // Set up mongoose connection
 const mongoose = require("mongoose");
 mongoose.set("strictQuery", false);
-
-const dev_db_url =
-	"mongodb+srv://admin:NotNSVhN6ZptmH46@cluster0.7pjjyzi.mongodb.net/Inventory_App?retryWrites=true&w=majority&appName=Cluster0";
-const mongoDB = process.env.MONGODB_URI || dev_db_url;
+	
+const mongoDB = process.env.MONGODB_URI;
 
 main().catch((err) => console.log(err));
 async function main() {
